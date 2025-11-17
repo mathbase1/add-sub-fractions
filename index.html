@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Adding & Subtracting Fractions – Interactive Worksheet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MathJax for crisp fraction rendering -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root { --accent:#1976d2; --light:#e3f2fd; --error:#e53935; --success:#43a047; --field-w:3.75rem; }
+    body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;padding:1rem 1rem 2rem;background:var(--light);}    
+    h1{text-align:center;color:var(--accent);margin:0 0 .25rem;}
+    p{max-width:800px;margin:.25rem auto 1.25rem;text-align:center;}
+    /* Logo */
+    .logo{position:absolute;top:12px;left:12px;width:140px;height:auto;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.2);}  
+    /* Score */
+    #scoreTop,#score{font-size:1.2rem;font-weight:600;text-align:center;color:#000;}
+    #scoreTop{margin-bottom:1rem;}
+    #score{margin-top:1rem;}
+    /* Accordion */
+    details{max-width:800px;margin:1rem auto;border:2px solid var(--accent);border-radius:6px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.08);} 
+    details[open]{box-shadow:0 4px 8px rgba(0,0,0,.12);}   
+    summary{padding:.6rem 1rem;font-weight:600;cursor:pointer; list-style:none; user-select:none; color:var(--accent);} 
+    summary::-webkit-details-marker{display:none;}
+    .hint{padding:0 1.2rem 1rem;font-size:.95rem;}
+    .hint ul{padding-left:1.1rem;margin:.4rem 0;}
+    .hint code{background:#f1f1f1;padding:2px 4px;border-radius:3px;}
+    /* Grid */
+    .grid{display:grid;gap:1rem;max-width:800px;margin:auto;}
+    .problem{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.65rem;padding:.9rem 1.1rem;background:#fff;border-radius:.6rem;box-shadow:0 2px 4px rgba(0,0,0,.08);}  
+    .expr{font-size:1.6rem;}
+    /* Fraction input */
+    .fraction-input{display:grid;grid-template-rows:auto 2px auto;row-gap:6px;justify-items:center;min-width:var(--field-w);}   
+    .fraction-input input{width:var(--field-w);text-align:center;border:1px solid #999;border-radius:4px;font-size:1.1rem;background:#fafafa;padding:.3rem 0;}
+    .fraction-input input:focus{outline:none;border-color:var(--accent);}  
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}input[type=number]{-moz-appearance:textfield;}
+    .fraction-input hr{width:var(--field-w);border:none;border-top:2px solid #000;margin:0;}
+    /* Buttons */
+    button{padding:.65rem 1.6rem;font-size:1rem;font-weight:600;border:none;border-radius:.3rem;cursor:pointer;transition:background .2s;}
+    #checkBtn{background:var(--accent);color:#fff;} #checkBtn:hover{background:#0f5ca4;}
+    #newBtn{background:#555;color:#fff;}           #newBtn:hover{background:#333;}
+    /* Markers */
+    .marker{font-size:2rem;font-weight:700;min-width:2rem;text-align:center;line-height:1;}
+    .ok{color:var(--success);} .no{color:var(--error);} 
+  </style>
+</head>
+<body>
+  <img src="https://lirp.cdn-website.com/b085c470/dms3rep/multi/opt/Bucks%2BCollege%2BGroup-e5af1b68-1920w.jpg" alt="Bucks College Group logo" class="logo">
 
+  <h1>Adding &amp; Subtracting Fractions</h1>
+  <p id="scoreTop"></p>
+
+  <!-- Accordion hint -->
+  <details>
+    <summary>Need a hint? (click to expand)</summary>
+    <div class="hint">
+      <strong>Step‑by‑step guide</strong>
+      <ul>
+        <li><strong>Find a common denominator</strong> for the two fractions.</li>
+        <li><strong>Rewrite</strong> each fraction using that common denominator.</li>
+        <li><strong>Add or subtract</strong> the numerators only – keep the denominator the same.</li>
+        <li><strong>Simplify</strong> your answer (divide top &amp; bottom by their highest common factor).</li>
+      </ul>
+      <em>Example – addition</em>:<br>
+      \[ \frac{1}{4}+\frac{1}{6} = \frac{3}{12}+\frac{2}{12}=\frac{5}{12} \]
+      <em>Example – subtraction</em>:<br>
+      \[ \frac{5}{8}-\frac{1}{6}=\frac{15}{24}-\frac{4}{24}=\frac{11}{24} \]
+    </div>
+  </details>
+
+  <p>Fractions have <strong>different</strong> denominators, and every result will simplify to a proper fraction. Enter answers in <em>lowest terms</em>.</p>
+
+  <div id="problems" class="grid"></div>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <button id="checkBtn">Check answers</button>
+    <button id="newBtn" title="Generate a new set">New questions</button>
+  </div>
+  <p id="score"></p>
+
+<script>
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const simplify=(n,d)=>{const g=Math.abs(gcd(n,d));return[n/g,d/g];};
+const rnd=(m,M)=>Math.floor(Math.random()*(M-m+1))+m;
+const TOTAL=10;let problems=[];const $grid=document.getElementById('problems');
+function makeProblem(){while(true){const d1=rnd(3,12);let d2;do{d2=rnd(3,12);}while(d2===d1);const n1=rnd(1,d1-1),n2=rnd(1,d2-1);const isAdd=Math.random()<.5;let op,num; if(isAdd){op='+';num=n1*d2+n2*d1;}else{const v1=n1*d2,v2=n2*d1;if(v1<=v2)continue;op='-';num=v1-v2;}const den=d1*d2;let[sn,sd]=simplify(num,den);if(sn>=sd)continue;return{n1,d1,n2,d2,op,ansN:sn,ansD:sd};}}
+function buildUI(){problems=[];$grid.innerHTML='';for(let i=0;i<TOTAL;i++){const p=makeProblem();problems.push(p);const row=document.createElement('div');row.className='problem';row.innerHTML=`<span class="expr">$$\\frac{${p.n1}}{${p.d1}}\\;${p.op}\\;\\frac{${p.n2}}{${p.d2}}=\\;$$</span><div class="fraction-input"><input type="text" inputmode="numeric" pattern="[0-9]*" class="num" autocomplete="off"><hr><input type="text" inputmode="numeric" pattern="[0-9]*" class="den" autocomplete="off"></div><span class="marker"></span>`;$grid.appendChild(row);}MathJax.typeset();updateScore('');}
+function updateScore(txt){document.getElementById('score').textContent=txt;document.getElementById('scoreTop').textContent=txt;}
+function check(){let correct=0;[...$grid.children].forEach((row,i)=>{const num=row.querySelector('.num').value.trim(),den=row.querySelector('.den').value.trim(),mark=row.querySelector('.marker');if(!num&&!den){mark.textContent='';mark.className='marker';return;}const p=problems[i];if(+num===p.ansN&&+den===p.ansD){mark.textContent='✓';mark.className='marker ok';correct++;}else{mark.textContent='✗';mark.className='marker no';}});updateScore(`You scored ${correct} / ${TOTAL}`);} 
+document.getElementById('checkBtn').addEventListener('click',check);
+document.getElementById('newBtn').addEventListener('click',buildUI);
+buildUI();
+</script>
+</body>
+</html>
